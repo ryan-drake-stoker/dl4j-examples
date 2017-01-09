@@ -95,15 +95,19 @@ public class VariableRatioSentimentExampleIterator implements DataSetIterator {
             if(cursor % pos_neg_splitter == 0){
                 //Load positive review
                 int posReviewNumber = posReviewNumberFor(cursor);
-                String review = FileUtils.readFileToString(positiveFiles[posReviewNumber]);
-                reviews.add(review);
-                positive[i] = true;
+                if(positiveFiles.length > posReviewNumber) {
+                    String review = FileUtils.readFileToString(positiveFiles[posReviewNumber]);
+                    reviews.add(review);
+                    positive[i] = true;
+                }
             } else {
                 //Load negative review
                 int negReviewNumber = negReviewNumberFor(cursor);
-                String review = FileUtils.readFileToString(negativeFiles[negReviewNumber]);
-                reviews.add(review);
-                positive[i] = false;
+                if(negativeFiles.length > negReviewNumber) {
+                    String review = FileUtils.readFileToString(negativeFiles[negReviewNumber]);
+                    reviews.add(review);
+                    positive[i] = false;
+                }
             }
             cursor++;
         }
