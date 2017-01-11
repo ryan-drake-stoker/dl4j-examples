@@ -10,7 +10,10 @@ public class MultiLabelClassification {
         String test_file = train_file;
         String word2vec_file = "/home/ryan/projects/dl_service/deps.words";
         int number_of_labels = 3;
-        Word2VecMultiLabelCategorisationRNN classifier = new Word2VecMultiLabelCategorisationRNN(train_file, test_file, word2vec_file, number_of_labels);
+        double learning_rate = 0.25;
+        double regularization = 0.001;
+        int epochs = 3;
+        Word2VecMultiLabelCategorisationRNN classifier = new Word2VecMultiLabelCategorisationRNN(train_file, test_file, word2vec_file, number_of_labels, learning_rate, regularization, epochs);
         classifier.trainAndTest();
     }
 

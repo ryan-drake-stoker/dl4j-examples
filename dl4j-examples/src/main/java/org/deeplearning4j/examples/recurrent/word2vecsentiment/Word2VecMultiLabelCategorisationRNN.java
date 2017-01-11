@@ -63,41 +63,40 @@ public class Word2VecMultiLabelCategorisationRNN {
     /** Location (local file system) for the Google News vectors. Set this manually. */
     public final String WORD_VECTORS_PATH;// = "/home/ryan/projects/dl_service/deps.words";
     private final int number_of_labels;
+    private final double learning_rate;
+    private final double regularization_rate;
+    private final int epochs;
 
 
-    public Word2VecMultiLabelCategorisationRNN(String train_file_name, String test_file_name, String word_vec_file, int number_of_labels){
+    public Word2VecMultiLabelCategorisationRNN(String train_file_name, String test_file_name, String word_vec_file, int number_of_labels, double learning_rate, double regularization_rate, int epochs ){
         this.TRAIN_DATA_PATH = train_file_name;
         this.TEST_DATA_PATH = test_file_name;
         this.WORD_VECTORS_PATH = word_vec_file;
         this.number_of_labels = number_of_labels;
+        this.learning_rate = learning_rate;
+        this.regularization_rate = regularization_rate;
+        this.epochs = epochs;
     }
 
 
     public void trainAndTest() throws Exception {
-        if(WORD_VECTORS_PATH.startsWith("/PATH/TO/YOUR/VECTORS/")){
-            throw new RuntimeException("Please set the WORD_VECTORS_PATH before running this example");
-        }
 
-        //Download and extract data
-        //downloadData();
-
-        int batchSize = 64;     //Number of examples in each minibatch
+        int batchSize = 124;     //Number of examples in each minibatch
         int vectorSize = 300;   //Size of the word vectors. 300 in the Google News model
-        int nEpochs = 1;        //Number of epochs (full passes of training data) to train on
-        int truncateReviewsToLength = 256;  //Truncate reviews with length (# words) greater than this
+        int truncateReviewsToLength = 300;  //Truncate reviews with length (# words) greater than this
 
         //Set up network configuration
         MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
             .updater(Updater.ADAM).adamMeanDecay(0.9).adamVarDecay(0.999)
-            .regularization(true).l2(1e-5)
+            .regularization(true).l2(regularization_rate)
             .weightInit(WeightInit.XAVIER)
             .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue).gradientNormalizationThreshold(1.0)
-            .learningRate(2e-2)
+            .learningRate(learning_rate)
             .list()
             .layer(0, new GravesLSTM.Builder().nIn(vectorSize).nOut(256)
                 .activation(Activation.TANH).build())
             .layer(1, new RnnOutputLayer.Builder().activation(Activation.SOFTMAX)
-                .lossFunction(LossFunctions.LossFunction.MCXENT).nIn(256).nOut(3).build())
+                .lossFunction(LossFunctions.LossFunction.MCXENT).nIn(256).nOut(number_of_labels).build())
             .pretrain(false).backprop(true).build();
 
         MultiLayerNetwork net = new MultiLayerNetwork(conf);
@@ -121,11 +120,11 @@ public class Word2VecMultiLabelCategorisationRNN {
 
         //DataSetIterators for training and testing respectively
         WordVectors wordVectors = WordVectorSerializer.loadStaticModel(new File(WORD_VECTORS_PATH));
-        MultiLabelSentenceCSVIterator train = new MultiLabelSentenceCSVIterator(TRAIN_DATA_PATH, wordVectors, 3,batchSize, truncateReviewsToLength);
-        MultiLabelSentenceCSVIterator test = new MultiLabelSentenceCSVIterator(TEST_DATA_PATH, wordVectors, 3,batchSize, truncateReviewsToLength);
+        MultiLabelSentenceCSVIterator train = new MultiLabelSentenceCSVIterator(TRAIN_DATA_PATH, wordVectors, number_of_labels,batchSize, truncateReviewsToLength);
+        MultiLabelSentenceCSVIterator test = new MultiLabelSentenceCSVIterator(TEST_DATA_PATH, wordVectors, number_of_labels,batchSize, truncateReviewsToLength);
 
         System.out.println("Starting training");
-        for (int i = 0; i < nEpochs; i++) {
+        for (int i = 0; i < epochs; i++) {
             net.fit(train);
             train.reset();
             System.out.println("Epoch " + i + " complete. Starting evaluation:");
