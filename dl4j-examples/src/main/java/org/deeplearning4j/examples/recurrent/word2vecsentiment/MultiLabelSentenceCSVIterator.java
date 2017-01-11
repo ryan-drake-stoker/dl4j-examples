@@ -82,8 +82,8 @@ public class MultiLabelSentenceCSVIterator implements DataSetIterator {
         for( int i=0; i<num && iterator.hasNext(); i++ ){
             String[] line = iterator.nextLine().split(":=:");
             if(line.length > 1){
-                label[i] = Integer.parseInt(line[1].trim());
-                reviews.add(line[0].trim());
+                label[i] = Integer.parseInt(line[0].trim());
+                reviews.add(line[1].trim());
                 cursor++;
             }
 //
