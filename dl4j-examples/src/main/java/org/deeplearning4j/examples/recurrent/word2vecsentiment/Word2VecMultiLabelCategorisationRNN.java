@@ -5,6 +5,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
 import org.deeplearning4j.models.embeddings.wordvectors.WordVectors;
@@ -17,6 +18,9 @@ import org.deeplearning4j.nn.conf.layers.RnnOutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
+import org.deeplearning4j.ui.api.UIServer;
+import org.deeplearning4j.ui.stats.StatsListener;
+import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
@@ -54,12 +58,22 @@ public class Word2VecMultiLabelCategorisationRNN {
 
 
     /** Location to save and extract the training/testing data */
-    public static final String DATA_PATH = "/home/ryan/projects/dl4j-examples/test_multi.txt";
+    public final String TRAIN_DATA_PATH;
+    public final String TEST_DATA_PATH;
     /** Location (local file system) for the Google News vectors. Set this manually. */
-    public static final String WORD_VECTORS_PATH = "/home/ryan/projects/dl_service/deps.words";
+    public final String WORD_VECTORS_PATH;// = "/home/ryan/projects/dl_service/deps.words";
+    private final int number_of_labels;
 
 
-    public static void main(String[] args) throws Exception {
+    public Word2VecMultiLabelCategorisationRNN(String train_file_name, String test_file_name, String word_vec_file, int number_of_labels){
+        this.TRAIN_DATA_PATH = train_file_name;
+        this.TEST_DATA_PATH = test_file_name;
+        this.WORD_VECTORS_PATH = word_vec_file;
+        this.number_of_labels = number_of_labels;
+    }
+
+
+    public void trainAndTest() throws Exception {
         if(WORD_VECTORS_PATH.startsWith("/PATH/TO/YOUR/VECTORS/")){
             throw new RuntimeException("Please set the WORD_VECTORS_PATH before running this example");
         }
@@ -90,10 +104,25 @@ public class Word2VecMultiLabelCategorisationRNN {
         net.init();
         net.setListeners(new ScoreIterationListener(1));
 
+
+
+        //Initialize the user interface backend
+        UIServer uiServer = UIServer.getInstance();
+
+        //Configure where the network information (gradients, score vs. time etc) is to be stored. Here: store in memory.
+        StatsStorage statsStorage = new InMemoryStatsStorage();         //Alternative: new FileStatsStorage(File), for saving and loading later
+
+        //Attach the StatsStorage instance to the UI: this allows the contents of the StatsStorage to be visualized
+        uiServer.attach(statsStorage);
+
+        //Then add the StatsListener to collect this information from the network, as it trains
+        net.setListeners(new StatsListener(statsStorage));
+
+
         //DataSetIterators for training and testing respectively
         WordVectors wordVectors = WordVectorSerializer.loadStaticModel(new File(WORD_VECTORS_PATH));
-        MultiLabelSentenceCSVIterator train = new MultiLabelSentenceCSVIterator(DATA_PATH, wordVectors, 3,batchSize, truncateReviewsToLength);
-        MultiLabelSentenceCSVIterator test = new MultiLabelSentenceCSVIterator(DATA_PATH, wordVectors, 3,batchSize, truncateReviewsToLength);
+        MultiLabelSentenceCSVIterator train = new MultiLabelSentenceCSVIterator(TRAIN_DATA_PATH, wordVectors, 3,batchSize, truncateReviewsToLength);
+        MultiLabelSentenceCSVIterator test = new MultiLabelSentenceCSVIterator(TEST_DATA_PATH, wordVectors, 3,batchSize, truncateReviewsToLength);
 
         System.out.println("Starting training");
         for (int i = 0; i < nEpochs; i++) {
@@ -118,20 +147,7 @@ public class Word2VecMultiLabelCategorisationRNN {
             System.out.println(evaluation.stats());
         }
 
-        //After training: load a single example and generate predictions
-        File firstPositiveReviewFile = new File(FilenameUtils.concat(DATA_PATH, "test/pos/10.txt"));
-        String firstPositiveReview = FileUtils.readFileToString(firstPositiveReviewFile);
 
-        INDArray features = test.loadFeaturesFromString(firstPositiveReview, truncateReviewsToLength);
-        INDArray networkOutput = net.output(features);
-        int timeSeriesLength = networkOutput.size(3);
-        INDArray probabilitiesAtLastWord = networkOutput.get(NDArrayIndex.point(0), NDArrayIndex.all(), NDArrayIndex.point(timeSeriesLength - 1));
-
-        System.out.println("\n\n-------------------------------");
-        System.out.println("First positive review: \n" + firstPositiveReview);
-        System.out.println("\n\nProbabilities at last time step:");
-        System.out.println("p(positive): " + probabilitiesAtLastWord.getDouble(0));
-        System.out.println("p(negative): " + probabilitiesAtLastWord.getDouble(1));
 
         System.out.println("----- Example complete -----");
     }
