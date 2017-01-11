@@ -33,6 +33,7 @@ import org.deeplearning4j.text.tokenization.tokenizerfactory.TokenizerFactory;
  */
 public class MultiLabelSentenceCSVIterator implements DataSetIterator {
 
+    private final String file_name;
     private final int vectorSize;
     private final WordVectors wordVectors;
     private final int number_of_labels;
@@ -45,6 +46,7 @@ public class MultiLabelSentenceCSVIterator implements DataSetIterator {
 
 
     public MultiLabelSentenceCSVIterator(String file, WordVectors wordVectors, int number_of_labels, int batchSize, int truncateLength) throws Exception{
+        file_name = file;
         this.vectorSize = wordVectors.getWordVector(wordVectors.vocab().wordAtIndex(0)).length;
         this.wordVectors = wordVectors;
         this.number_of_labels = number_of_labels;
@@ -210,7 +212,14 @@ public class MultiLabelSentenceCSVIterator implements DataSetIterator {
 
     @Override
     public void reset() {
-
+       cursor = 0;
+        try{
+            this.iterator = FileUtils.lineIterator(new File(this.file_name), "UTF-8");
+        }
+        catch(Exception e){
+            System.out.println(e.getMessage());
+             e.printStackTrace();
+        }
     }
 
     @Override
