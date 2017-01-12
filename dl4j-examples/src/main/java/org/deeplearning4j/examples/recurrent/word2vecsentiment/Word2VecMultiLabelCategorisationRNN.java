@@ -70,12 +70,19 @@ public class Word2VecMultiLabelCategorisationRNN {
 
     public Word2VecMultiLabelCategorisationRNN(String train_file_name, String test_file_name, String word_vec_file, int number_of_labels, double learning_rate, double regularization_rate, int epochs ){
         this.TRAIN_DATA_PATH = train_file_name;
+        System.out.println("Train data:" + this.TRAIN_DATA_PATH);
         this.TEST_DATA_PATH = test_file_name;
+        System.out.println("Test data:" + this.TEST_DATA_PATH);
         this.WORD_VECTORS_PATH = word_vec_file;
+        System.out.println("WORD_VECTORS_PATH:" + this.WORD_VECTORS_PATH);
         this.number_of_labels = number_of_labels;
+        System.out.println("number_of_labels:" + this.number_of_labels);
         this.learning_rate = learning_rate;
+        System.out.println("learning_rate:" + this.learning_rate);
         this.regularization_rate = regularization_rate;
+        System.out.println("regularization_rate:" + this.regularization_rate);
         this.epochs = epochs;
+        System.out.println("epochs:" + this.epochs);
     }
 
 
