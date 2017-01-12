@@ -141,6 +141,7 @@ public class Word2VecMultiLabelCategorisationRNN {
         MultiLabelSentenceCSVIterator test = new MultiLabelSentenceCSVIterator(TEST_DATA_PATH, wordVectors, number_of_labels,batchSize, truncateReviewsToLength);
         Date startpoint = new Date();
         System.out.println("Starting training at " + startpoint.toString());
+        File res_tracker = new File("training_results.csv");
         for (int i = 0; i < epochs; i++) {
             System.out.println("Epoch " + i + " starting at :" + new Date().toString());
             net.fit(train);
@@ -162,6 +163,8 @@ public class Word2VecMultiLabelCategorisationRNN {
             test.reset();
 
             System.out.println(evaluation.stats());
+            String out_line = this.learning_rate + ", " + this.regularization_rate + ", " + this.batchSize + ", " + this.epochs + ", " + i + ", " + evaluation.f1() + ", " + evaluation.precision() + ", " + evaluation.accuracy();
+            FileUtils.write(res_tracker, out_line, true);
         }
 
 
