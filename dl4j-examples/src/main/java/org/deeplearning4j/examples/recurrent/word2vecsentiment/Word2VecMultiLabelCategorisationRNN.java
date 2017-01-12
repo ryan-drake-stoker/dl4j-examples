@@ -30,6 +30,7 @@ import org.nd4j.linalg.lossfunctions.LossFunctions;
 
 import java.io.*;
 import java.net.URL;
+import java.util.Date;
 
 /**Example: Given a movie review (raw text), classify that movie review as either positive or negative based on the words it contains.
  * This is done by combining Word2Vec vectors and a recurrent neural network model. Each word in a review is vectorized
@@ -58,37 +59,46 @@ public class Word2VecMultiLabelCategorisationRNN {
 
 
     /** Location to save and extract the training/testing data */
-    public final String TRAIN_DATA_PATH;
-    public final String TEST_DATA_PATH;
-    /** Location (local file system) for the Google News vectors. Set this manually. */
-    public final String WORD_VECTORS_PATH;// = "/home/ryan/projects/dl_service/deps.words";
-    private final int number_of_labels;
-    private final double learning_rate;
-    private final double regularization_rate;
-    private final int epochs;
+    private String TRAIN_DATA_PATH;
+    private String TEST_DATA_PATH;
 
 
-    public Word2VecMultiLabelCategorisationRNN(String train_file_name, String test_file_name, String word_vec_file, int number_of_labels, double learning_rate, double regularization_rate, int epochs ){
+    /** Location (local file system) for the word2vec vectors. Set this manually. */
+    private String WORD_VECTORS_PATH;// = "/home/ryan/projects/dl_service/deps.words";
+    private int number_of_labels;
+    private double learning_rate;
+    private double regularization_rate;
+    private int epochs;
+    //Number of examples in each minibatch
+    private int batchSize;
+
+
+
+    public Word2VecMultiLabelCategorisationRNN(String train_file_name, String test_file_name, String word_vec_file, int number_of_labels ){
         this.TRAIN_DATA_PATH = train_file_name;
-        System.out.println("Train data:" + this.TRAIN_DATA_PATH);
         this.TEST_DATA_PATH = test_file_name;
-        System.out.println("Test data:" + this.TEST_DATA_PATH);
         this.WORD_VECTORS_PATH = word_vec_file;
-        System.out.println("WORD_VECTORS_PATH:" + this.WORD_VECTORS_PATH);
         this.number_of_labels = number_of_labels;
+        this.learning_rate = 0.25;
+        this.regularization_rate = 0.001;
+        this.epochs = 3;
+        this.batchSize = 124;
+    }
+
+    private void printSettings(){
+        System.out.println("Train data:" + this.TRAIN_DATA_PATH);
+        System.out.println("Test data:" + this.TEST_DATA_PATH);
+        System.out.println("WORD_VECTORS_PATH:" + this.WORD_VECTORS_PATH);
         System.out.println("number_of_labels:" + this.number_of_labels);
-        this.learning_rate = learning_rate;
         System.out.println("learning_rate:" + this.learning_rate);
-        this.regularization_rate = regularization_rate;
         System.out.println("regularization_rate:" + this.regularization_rate);
-        this.epochs = epochs;
         System.out.println("epochs:" + this.epochs);
+        System.out.println("batchSize:" + this.batchSize);
     }
 
 
     public void trainAndTest() throws Exception {
-
-        int batchSize = 124;     //Number of examples in each minibatch
+        printSettings();
         int vectorSize = 300;   //Size of the word vectors. 300 in the Google News model
         int truncateReviewsToLength = 300;  //Truncate reviews with length (# words) greater than this
 
@@ -129,12 +139,13 @@ public class Word2VecMultiLabelCategorisationRNN {
         WordVectors wordVectors = WordVectorSerializer.loadStaticModel(new File(WORD_VECTORS_PATH));
         MultiLabelSentenceCSVIterator train = new MultiLabelSentenceCSVIterator(TRAIN_DATA_PATH, wordVectors, number_of_labels,batchSize, truncateReviewsToLength);
         MultiLabelSentenceCSVIterator test = new MultiLabelSentenceCSVIterator(TEST_DATA_PATH, wordVectors, number_of_labels,batchSize, truncateReviewsToLength);
-
-        System.out.println("Starting training");
+        Date startpoint = new Date();
+        System.out.println("Starting training at " + startpoint.toString());
         for (int i = 0; i < epochs; i++) {
+            System.out.println("Epoch " + i + " starting at :" + new Date().toString());
             net.fit(train);
             train.reset();
-            System.out.println("Epoch " + i + " complete. Starting evaluation:");
+            System.out.println("Epoch " + i + " complete at :" + new Date().toString() + ". Starting evaluation:");
 
             //Run evaluation. This is on 25k reviews, so can take some time
             Evaluation evaluation = new Evaluation();
@@ -157,6 +168,72 @@ public class Word2VecMultiLabelCategorisationRNN {
 
         System.out.println("----- Example complete -----");
     }
+
+
+    public String getTRAIN_DATA_PATH() {
+        return TRAIN_DATA_PATH;
+    }
+
+    public void setTRAIN_DATA_PATH(String TRAIN_DATA_PATH) {
+        this.TRAIN_DATA_PATH = TRAIN_DATA_PATH;
+    }
+
+    public String getTEST_DATA_PATH() {
+        return TEST_DATA_PATH;
+    }
+
+    public void setTEST_DATA_PATH(String TEST_DATA_PATH) {
+        this.TEST_DATA_PATH = TEST_DATA_PATH;
+    }
+
+    public String getWORD_VECTORS_PATH() {
+        return WORD_VECTORS_PATH;
+    }
+
+    public void setWORD_VECTORS_PATH(String WORD_VECTORS_PATH) {
+        this.WORD_VECTORS_PATH = WORD_VECTORS_PATH;
+    }
+
+    public int getNumber_of_labels() {
+        return number_of_labels;
+    }
+
+    public void setNumber_of_labels(int number_of_labels) {
+        this.number_of_labels = number_of_labels;
+    }
+
+    public double getLearning_rate() {
+        return learning_rate;
+    }
+
+    public void setLearning_rate(double learning_rate) {
+        this.learning_rate = learning_rate;
+    }
+
+    public double getRegularization_rate() {
+        return regularization_rate;
+    }
+
+    public void setRegularization_rate(double regularization_rate) {
+        this.regularization_rate = regularization_rate;
+    }
+
+    public int getEpochs() {
+        return epochs;
+    }
+
+    public void setEpochs(int epochs) {
+        this.epochs = epochs;
+    }
+
+    public int getBatchSize() {
+        return batchSize;
+    }
+
+    public void setBatchSize(int batchSize) {
+        this.batchSize = batchSize;
+    }
+
 
 
 }

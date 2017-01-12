@@ -10,16 +10,24 @@ public class MultiLabelClassification {
         String test_file = "/home/ryan/projects/dl_service/test_multi_lable.txt";
         String word2vec_file = "/home/ryan/projects/dl_service/deps.words";
         int number_of_labels = 3;
-        double learning_rate = 0.25;
+
+        Word2VecMultiLabelCategorisationRNN classifier = new Word2VecMultiLabelCategorisationRNN(train_file, test_file, word2vec_file, number_of_labels);
+
         if(args.length > 0){
-            learning_rate = Double.parseDouble(args[0]);
+            classifier.setLearning_rate(Double.parseDouble(args[0]));
         }
-        double regularization = 0.001;
         if(args.length > 1){
-            regularization = Double.parseDouble(args[1]);
+            classifier.setRegularization_rate(Double.parseDouble(args[1]));
         }
-        int epochs = 3;
-        Word2VecMultiLabelCategorisationRNN classifier = new Word2VecMultiLabelCategorisationRNN(train_file, test_file, word2vec_file, number_of_labels, learning_rate, regularization, epochs);
+
+        if(args.length > 2){
+            classifier.setEpochs(Integer.parseInt(args[2]));
+        }
+
+        if(args.length > 3){
+            classifier.setBatchSize(Integer.parseInt(args[3]));
+        }
+
         classifier.trainAndTest();
     }
 
