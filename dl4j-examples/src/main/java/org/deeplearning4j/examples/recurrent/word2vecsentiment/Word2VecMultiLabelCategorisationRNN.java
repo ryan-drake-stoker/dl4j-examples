@@ -21,6 +21,7 @@ import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
+import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
@@ -163,8 +164,12 @@ public class Word2VecMultiLabelCategorisationRNN {
             test.reset();
 
             System.out.println(evaluation.stats());
-            String out_line = this.learning_rate + ", " + this.regularization_rate + ", " + this.batchSize + ", " + this.epochs + ", " + i + ", " + evaluation.f1() + ", " + evaluation.precision() + ", " + evaluation.accuracy();
+            String out_line = this.learning_rate + ", " + this.regularization_rate + ", " + this.batchSize + ", " + this.epochs + ", " + i + ", " + evaluation.f1() + ", " + evaluation.precision() + ", " + evaluation.accuracy() + "\n";
             FileUtils.write(res_tracker, out_line, true);
+            String model_name = this.learning_rate + "_" + this.regularization_rate + "_" + this.batchSize + "_" + this.epochs + "_RNN.model";
+            model_name = model_name.replaceAll(".", "");
+            ModelSerializer.writeModel(net, model_name, true);
+
         }
 
 
