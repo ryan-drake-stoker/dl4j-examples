@@ -166,9 +166,12 @@ public class Word2VecMultiLabelCategorisationRNN {
             System.out.println(evaluation.stats());
             String out_line = this.learning_rate + ", " + this.regularization_rate + ", " + this.batchSize + ", " + this.epochs + ", " + i + ", " + evaluation.f1() + ", " + evaluation.precision() + ", " + evaluation.accuracy() + "\n";
             FileUtils.write(res_tracker, out_line, true);
-            String model_name = this.learning_rate + "_" + this.regularization_rate + "_" + this.batchSize + "_" + this.epochs + "_RNN.model";
-            model_name = model_name.replaceAll(".", "");
-            ModelSerializer.writeModel(net, model_name, true);
+            String model_name = this.learning_rate + "_" + this.regularization_rate + "_" + this.batchSize + "_" + this.epochs + "_RNN";
+            model_name = model_name.replaceAll("\\.", "") + ".model";
+            File f = new File(model_name);
+            System.out.println("Writing out model");
+            System.out.println(f.getAbsoluteFile());
+            ModelSerializer.writeModel(net,f,true);
 
         }
 
