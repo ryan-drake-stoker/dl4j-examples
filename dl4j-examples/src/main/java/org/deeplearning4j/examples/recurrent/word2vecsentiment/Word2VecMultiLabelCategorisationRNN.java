@@ -9,10 +9,7 @@ import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
 import org.deeplearning4j.models.embeddings.wordvectors.WordVectors;
-import org.deeplearning4j.nn.conf.GradientNormalization;
-import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
-import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
-import org.deeplearning4j.nn.conf.Updater;
+import org.deeplearning4j.nn.conf.*;
 import org.deeplearning4j.nn.conf.layers.GravesLSTM;
 import org.deeplearning4j.nn.conf.layers.RnnOutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
@@ -104,18 +101,7 @@ public class Word2VecMultiLabelCategorisationRNN {
         int truncateReviewsToLength = 300;  //Truncate reviews with length (# words) greater than this
 
         //Set up network configuration
-        MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
-            .updater(Updater.ADAM).adamMeanDecay(0.9).adamVarDecay(0.999)
-            .regularization(true).l2(regularization_rate)
-            .weightInit(WeightInit.XAVIER)
-            .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue).gradientNormalizationThreshold(1.0)
-            .learningRate(learning_rate)
-            .list()
-            .layer(0, new GravesLSTM.Builder().nIn(vectorSize).nOut(256)
-                .activation(Activation.TANH).build())
-            .layer(1, new RnnOutputLayer.Builder().activation(Activation.SOFTMAX)
-                .lossFunction(LossFunctions.LossFunction.MCXENT).nIn(256).nOut(number_of_labels).build())
-            .pretrain(false).backprop(true).build();
+        MultiLayerConfiguration conf = getSimpleRNNConfiguration(vectorSize);
 
         MultiLayerNetwork net = new MultiLayerNetwork(conf);
         net.init();
@@ -166,7 +152,7 @@ public class Word2VecMultiLabelCategorisationRNN {
             System.out.println(evaluation.stats());
             String out_line = this.learning_rate + ", " + this.regularization_rate + ", " + this.batchSize + ", " + this.epochs + ", " + i + ", " + evaluation.f1() + ", " + evaluation.precision() + ", " + evaluation.accuracy() + "\n";
             FileUtils.write(res_tracker, out_line, true);
-            String model_name = this.learning_rate + "_" + this.regularization_rate + "_" + this.batchSize + "_" + this.epochs + "_RNN";
+            String model_name = "lr-" + this.learning_rate + "_rg-" + this.regularization_rate + "_bs-" + this.batchSize + "_ep-" + this.epochs + "_" + i + "_RNN";
             model_name = model_name.replaceAll("\\.", "") + ".model";
             File f = new File(model_name);
             System.out.println("Writing out model");
@@ -178,6 +164,40 @@ public class Word2VecMultiLabelCategorisationRNN {
 
 
         System.out.println("----- Example complete -----");
+    }
+
+    private MultiLayerConfiguration getSimpleRNNConfiguration(int vectorSize) {
+        return new NeuralNetConfiguration.Builder()
+            .updater(Updater.ADAM).adamMeanDecay(0.9).adamVarDecay(0.999)
+            .regularization(true).l2(regularization_rate)
+            .weightInit(WeightInit.XAVIER)
+            .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue).gradientNormalizationThreshold(1.0)
+            .learningRate(learning_rate)
+            .list()
+            .layer(0, new GravesLSTM.Builder().nIn(vectorSize).nOut(256)
+                .activation(Activation.TANH).build())
+            .layer(1, new RnnOutputLayer.Builder().activation(Activation.SOFTMAX)
+                .lossFunction(LossFunctions.LossFunction.MCXENT).nIn(256).nOut(number_of_labels).build())
+            .pretrain(false).backprop(true).build();
+    }
+
+    private MultiLayerConfiguration getBiDirectionalRNNConfiguration(int vectorSize) {
+        int tbpttLength = 50;
+        return new NeuralNetConfiguration.Builder()
+            .updater(Updater.ADAM).adamMeanDecay(0.9).adamVarDecay(0.999)
+            .regularization(true).l2(regularization_rate)
+            .weightInit(WeightInit.XAVIER)
+            .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue).gradientNormalizationThreshold(1.0)
+            .learningRate(learning_rate)
+            .list()
+            .layer(0, new GravesLSTM.Builder().nIn(vectorSize).nOut(256)
+                .activation(Activation.TANH).build())
+            .layer(1, new GravesLSTM.Builder().nIn(vectorSize).nOut(256)
+                .activation(Activation.TANH).build())
+            .layer(2, new RnnOutputLayer.Builder().activation(Activation.SOFTMAX)
+                .lossFunction(LossFunctions.LossFunction.MCXENT).nIn(256).nOut(number_of_labels).build())
+            .backpropType(BackpropType.TruncatedBPTT).tBPTTForwardLength(tbpttLength).tBPTTBackwardLength(tbpttLength)
+            .pretrain(false).backprop(true).build();
     }
 
 
