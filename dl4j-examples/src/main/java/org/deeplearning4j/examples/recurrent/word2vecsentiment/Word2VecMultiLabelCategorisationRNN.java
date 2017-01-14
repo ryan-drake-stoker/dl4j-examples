@@ -192,7 +192,7 @@ public class Word2VecMultiLabelCategorisationRNN {
             .list()
             .layer(0, new GravesLSTM.Builder().nIn(vectorSize).nOut(256)
                 .activation(Activation.TANH).build())
-            .layer(1, new GravesLSTM.Builder().nIn(vectorSize).nOut(256)
+            .layer(1, new GravesLSTM.Builder().nIn(256).nOut(256)
                 .activation(Activation.TANH).build())
             .layer(2, new RnnOutputLayer.Builder().activation(Activation.SOFTMAX)
                 .lossFunction(LossFunctions.LossFunction.MCXENT).nIn(256).nOut(number_of_labels).build())
