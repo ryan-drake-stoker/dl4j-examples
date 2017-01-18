@@ -174,7 +174,7 @@ public class Word2VecMultiLabelCategorisationRNN {
 
     private MultiLayerConfiguration getSimpleRNNConfiguration(int vectorSize) {
         return new NeuralNetConfiguration.Builder()
-            .updater(Updater.ADAM).adamMeanDecay(0.9).adamVarDecay(0.999)
+            .updater(Updater.ADAM).adamMeanDecay(decay_rate).adamVarDecay(0.999)
             .regularization(true).l2(regularization_rate)
             .weightInit(WeightInit.XAVIER)
             .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue).gradientNormalizationThreshold(1.0)
@@ -190,7 +190,7 @@ public class Word2VecMultiLabelCategorisationRNN {
     private MultiLayerConfiguration getBiDirectionalRNNConfiguration(int vectorSize) {
         int tbpttLength = 50;
         return new NeuralNetConfiguration.Builder()
-            .updater(Updater.ADAM).adamMeanDecay(0.9).adamVarDecay(0.999)
+            .updater(Updater.ADAM).adamMeanDecay(decay_rate).adamVarDecay(0.999)
             .regularization(true).l2(regularization_rate)
             .weightInit(WeightInit.XAVIER)
             .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue).gradientNormalizationThreshold(1.0)
