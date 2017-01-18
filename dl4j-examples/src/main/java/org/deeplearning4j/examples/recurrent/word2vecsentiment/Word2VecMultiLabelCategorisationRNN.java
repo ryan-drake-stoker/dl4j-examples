@@ -64,11 +64,21 @@ public class Word2VecMultiLabelCategorisationRNN {
     /** Location (local file system) for the word2vec vectors. Set this manually. */
     private String WORD_VECTORS_PATH;// = "/home/ryan/projects/dl_service/deps.words";
     private int number_of_labels;
-    private double learning_rate;
-    private double regularization_rate;
-    private int epochs;
+    private double learning_rate = 0.25;
+    private double regularization_rate = 0.001;
+    private int epochs = 3;
     //Number of examples in each minibatch
-    private int batchSize;
+    private int batchSize = 124;
+
+    public double getDecay_rate() {
+        return decay_rate;
+    }
+
+    public void setDecay_rate(double decay_rate) {
+        this.decay_rate = decay_rate;
+    }
+
+    private double decay_rate = 0.9;
 
 
 
@@ -77,10 +87,6 @@ public class Word2VecMultiLabelCategorisationRNN {
         this.TEST_DATA_PATH = test_file_name;
         this.WORD_VECTORS_PATH = word_vec_file;
         this.number_of_labels = number_of_labels;
-        this.learning_rate = 0.25;
-        this.regularization_rate = 0.001;
-        this.epochs = 3;
-        this.batchSize = 124;
     }
 
     private void printSettings(){
