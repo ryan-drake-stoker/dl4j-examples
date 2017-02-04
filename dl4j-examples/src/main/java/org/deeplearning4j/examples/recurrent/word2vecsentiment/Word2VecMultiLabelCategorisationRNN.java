@@ -204,6 +204,7 @@ public class Word2VecMultiLabelCategorisationRNN {
 
     private MultiLayerConfiguration getBiDirectionalRNNConfiguration(int vectorSize) {
         int tbpttLength = 50;
+        int layer_size = 256;
         return new NeuralNetConfiguration.Builder()
             .updater(Updater.ADAM).adamMeanDecay(decay_rate).adamVarDecay(0.999)
             .regularization(true).l2(regularization_rate)
@@ -211,12 +212,12 @@ public class Word2VecMultiLabelCategorisationRNN {
             .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue).gradientNormalizationThreshold(1.0)
             .learningRate(learning_rate)
             .list()
-            .layer(0, new GravesLSTM.Builder().nIn(vectorSize).nOut(512)
+            .layer(0, new GravesLSTM.Builder().nIn(vectorSize).nOut(layer_size)
                 .activation(Activation.SOFTSIGN).build())
-            .layer(1, new GravesLSTM.Builder().nIn(512).nOut(512)
+            .layer(1, new GravesLSTM.Builder().nIn(layer_size).nOut(layer_size)
                 .activation(Activation.SOFTSIGN).build())
             .layer(2, new RnnOutputLayer.Builder().activation(Activation.SOFTMAX)
-                .lossFunction(LossFunctions.LossFunction.MCXENT).nIn(512).nOut(number_of_labels).build())
+                .lossFunction(LossFunctions.LossFunction.MCXENT).nIn(layer_size).nOut(number_of_labels).build())
             .backpropType(BackpropType.TruncatedBPTT).tBPTTForwardLength(tbpttLength).tBPTTBackwardLength(tbpttLength)
             .pretrain(false).backprop(true).build();
     }
