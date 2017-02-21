@@ -14,6 +14,7 @@ import org.deeplearning4j.nn.conf.layers.GravesLSTM;
 import org.deeplearning4j.nn.conf.layers.RnnOutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
+import org.deeplearning4j.optimize.api.IterationListener;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.stats.StatsListener;
@@ -28,6 +29,7 @@ import org.nd4j.linalg.lossfunctions.LossFunctions;
 
 import java.io.*;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Date;
 
 /**Example: Given a movie review (raw text), classify that movie review as either positive or negative based on the words it contains.
@@ -125,7 +127,11 @@ public class Word2VecMultiLabelCategorisationRNN {
         uiServer.attach(statsStorage);
 
         //Then add the StatsListener to collect this information from the network, as it trains
-        net.setListeners(new StatsListener(statsStorage));
+        ArrayList<IterationListener> iterListeners = new ArrayList<>(2);
+        iterListeners.add(new StatsListener(statsStorage));
+        iterListeners.add(new ScoreIterationListener(1));
+
+        net.setListeners(iterListeners);
 
 
         //DataSetIterators for training and testing respectively
